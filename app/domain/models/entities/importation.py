@@ -6,4 +6,3 @@ class ImportationEntity(BaseModel):
     country: str
     year: int
     importation: int
-    

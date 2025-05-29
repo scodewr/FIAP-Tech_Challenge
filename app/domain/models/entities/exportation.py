@@ -1,9 +1,8 @@
 from pydantic import BaseModel
 
-class ImportationEntity(BaseModel):
+class ExportationEntity(BaseModel):
 
     id: int
     country: str
     year: int
-    importation: int
-    
+    exportation: int
