@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from pydantic import ValidationError
 
 class EmbrapaServiceUnavailableException(HTTPException):
     def __init__(self):
@@ -36,3 +37,17 @@ class PermissionDeniedException(HTTPException):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Permissão negada para acessar este endpoint."
         )
+
+class UserAlreadyExistsError(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Usuário já cadastrado."
+        )
+
+class PydanticRequestValidationError(HTTPException):
+    def __init__(self, error: ValidationError):
+        super().__init__(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error.errors() 
+)

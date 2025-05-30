@@ -8,12 +8,13 @@ from app.shared.dependencies import get_jwt_adapter_out, get_processing_adapter_
 
 router = APIRouter(
     prefix="/info/processing",
-    tags=["Informações de Processamento"],
+    tags=["Embrapa"],
     #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
+    summary="Obter dados de processamento",
     response_model=List[ProcessingEntity],
     responses={
         503: {

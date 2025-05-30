@@ -8,12 +8,13 @@ from typing import List
 
 router = APIRouter(
     prefix="/info/production",
-    tags=["Informações de Produção"],
+    tags=["Embrapa"],
     #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
+    summary="Obter dados de produção",
     response_model=List[ProductionEntity],
     responses={
         503: {

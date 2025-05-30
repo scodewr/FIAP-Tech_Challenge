@@ -7,12 +7,13 @@ from app.application.ports.input.embrapa.exportation_port_in import ExportationP
 
 router = APIRouter(
     prefix="/info/exportation",
-    tags=["Informações de Exportação"],
+    tags=["Embrapa"],
     #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
+    summary="Obter dados de exportação",
     response_model=List[ExportationEntity],
     responses={
         200: {

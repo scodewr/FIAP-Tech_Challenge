@@ -18,6 +18,12 @@ from app.domain.services.embrapa.importation_service import ImportationService
 from app.infrastructure.adapters.input.embrapa.importation_adapter_in import ImportationAdapterIn
 from app.domain.services.embrapa.exportation_service import ExportationService
 from app.infrastructure.adapters.input.embrapa.exportation_adapter_in import ExportationAdapterIn
+from app.infrastructure.adapters.input.iam.sign_up_adater_in import SignUpAdapterIn
+from app.domain.services.iam.sign_up_service import SignUpService
+from app.domain.services.iam.db.local_db_service import LocalDbService
+from app.application.ports.output.iam.sign_up_port_out import SignUpPortOut
+from app.infrastructure.adapters.output.iam.sign_up_adapter_out import SignUpAdapterOut
+
 from fastapi import Depends
 
 def get_csv_adapter_out() -> CSVAdapterOut:
@@ -64,3 +70,15 @@ def get_exportation_service(embrapa_adapter: EmbrapaAdapterOut = Depends(get_emb
 
 def get_exportation_adapter_in(exportation_service: ExportationService = Depends(get_exportation_service)) -> ExportationAdapterIn:
     return ExportationAdapterIn(service=exportation_service)
+
+def get_local_db_service() -> LocalDbService:
+    return LocalDbService()
+
+def get_sign_up_adapter_out(service: LocalDbService = Depends(get_local_db_service)) -> SignUpAdapterOut:
+    return SignUpAdapterOut(service=service)
+
+def get_sign_up_service(port_out: SignUpPortOut = Depends(get_sign_up_adapter_out)) -> SignUpService:
+    return SignUpService(port_out=port_out)
+
+def get_sign_up_adapter_in(service: SignUpService = Depends(get_sign_up_service)) -> SignUpAdapterIn:
+    return SignUpAdapterIn(service=service)

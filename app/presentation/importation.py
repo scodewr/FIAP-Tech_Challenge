@@ -7,12 +7,13 @@ from app.application.ports.input.embrapa.importation_port_in import ImportationP
 
 router = APIRouter(
     prefix="/info/importation",
-    tags=["Informações de Importação"],
+    tags=["Embrapa"],
     #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
+    summary="Obter dados de importação",
     response_model=List[ImportationEntity],
     responses={
         503: {

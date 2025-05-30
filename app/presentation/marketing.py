@@ -8,12 +8,13 @@ from app.shared.dependencies import get_jwt_adapter_out, get_marketing_adapter_i
 
 router = APIRouter(
     prefix="/info/marketing",
-    tags=["Informações de Marketing"],
+    tags=["Embrapa"],
     #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
+    summary="Obter dados de marketing",
     response_model=List[MarketingEntity],
     responses={
         503: {

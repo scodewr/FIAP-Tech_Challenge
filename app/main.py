@@ -6,6 +6,7 @@ from app.presentation.processing import router as processing_router
 from app.presentation.marketing import router as marketing_router
 from app.presentation.importation import router as importation_router
 from app.presentation.exportation import router as exportation_router
+from app.presentation.sign_up import router as sign_up_router
 
 # Inicialização do FastAPI
 app = FastAPI(
@@ -18,6 +19,7 @@ app = FastAPI(
 setup_middleware(app)
 
 # Inclusão dos routers
+app.include_router(sign_up_router)
 app.include_router(production_router)
 app.include_router(processing_router)
 app.include_router(marketing_router)
