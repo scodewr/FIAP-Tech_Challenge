@@ -1,10 +1,9 @@
 from typing import List
 from app.application.ports.output.embrapa.embrapa_port_out import EmbrapaPortOut
 from pydantic import BaseModel
-from app.domain.models.entities.embrapa.production import ProductionEntity
-from app.domain.models.entities.embrapa.production import ProductionCategoryEnum
+from app.domain.models.entities.embrapa.marketing import MarketingEntity, MarketingCategoryEnum
 
-class ProductionService:
+class MarketingService:
     """
     Serviço para lógica de negócio relacionada à produção.
     """
@@ -12,7 +11,7 @@ class ProductionService:
     def __init__(self, embrapa_port: EmbrapaPortOut):
         self.embrapa_port = embrapa_port
 
-    def get_production_data(self, url: str, page: int, page_size: int) -> List[BaseModel]:
+    def get_marketing_data(self, url: str, page: int, page_size: int) -> List[BaseModel]:
         """
         Obtém os dados de produção paginados.
 
@@ -23,10 +22,10 @@ class ProductionService:
         :return: Lista de instâncias do modelo.
         """
         # Faz o download do CSV usando o portOut da Embrapa
-        csv_data = self.embrapa_port.get_csv_data(url=url, model=ProductionEntity, category_enum=ProductionCategoryEnum, value_name_column="production", delimiter=";")
+        csv_data = self.embrapa_port.get_csv_data(url=url, model=MarketingEntity, category_enum=MarketingCategoryEnum, value_name_column="marketing", delimiter=";")
 
         # Processa os dados (simulação de lógica de processamento)
-        processed_data = [ProductionEntity(**row) for row in csv_data.to_dict(orient="records")]
+        processed_data = [MarketingEntity(**row) for row in csv_data.to_dict(orient="records")]
 
         # Paginação
         start = (page - 1) * page_size

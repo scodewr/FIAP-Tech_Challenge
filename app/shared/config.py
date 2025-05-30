@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 # Carrega o arquivo .env com base no ambiente
 env = os.getenv("ENV", "development").lower()
 if env == "production":
-    load_dotenv(".prod")
+    load_dotenv(".env/.prod")
 else:
-    load_dotenv(".dev")
+    load_dotenv(".env/.dev")
 
 class Settings:
     """

@@ -1,43 +1,21 @@
-from fastapi import APIRouter, Query, Request, Response, Depends
+from fastapi import APIRouter, Query, Depends
 from typing import List
-from app.domain.models.entities.marketing import MarketingEntity
-
+from app.domain.models.entities.embrapa.marketing import MarketingEntity
+from fastapi.security import HTTPBearer
+from app.application.ports.input.embrapa.marketing_port_in import MarketingPortIn
+from app.application.ports.output.auth.jwt_auth_port import JWTAuthPort
+from app.shared.dependencies import get_jwt_adapter_out, get_marketing_adapter_in
 
 router = APIRouter(
     prefix="/info/marketing",
     tags=["Informações de Marketing"],
-    
+    #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
     response_model=List[MarketingEntity],
     responses={
-        200: {
-            "description": "Dados de marketing retornados com sucesso.",
-            "content": {
-                "application/json": {
-                    "example": [
-                        {
-                            "id": 1,
-                            "control": "MK",
-                            "campaign": "Campanha de Marketing",
-                            "category": "Marketing",
-                            "year": 2020,
-                            "marketing": 500
-                        },
-                        {
-                            "id": 2,
-                            "control": "AD",
-                            "campaign": "Publicidade",
-                            "category": "Publicidade",
-                            "year": 2021,
-                            "marketing": 300
-                        }
-                    ]
-                }
-            },
-        },
         503: {
             "description": "Erro no serviço da Embrapa.",
             "content": {
@@ -53,13 +31,15 @@ router = APIRouter(
     },
 )
 async def get_marketing_data(
-    request: Request,
-    response: Response,
     page: int = Query(1, ge=1, description="Número da página"),
-    page_size: int = Query(10, ge=1, le=100, description="Tamanho da página")
+    page_size: int = Query(10, ge=1, le=100, description="Tamanho da página"),
+    port_in: MarketingPortIn = Depends(get_marketing_adapter_in),
+    auth_port: JWTAuthPort = Depends(get_jwt_adapter_out)
 ):
     """
     Endpoint para retornar informações de marketing.
     """
+    #await auth_port.validate_token(endpoint_permission="info_production")
     url = 'http://vitibrasil.cnpuv.embrapa.br/index.php?opcao=opt_04'
-    return ""
+    data = port_in.get_marketing_data(url=url, page=page, page_size=page_size)
+    return data

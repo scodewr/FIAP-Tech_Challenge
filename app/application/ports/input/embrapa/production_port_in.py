@@ -1,5 +1,5 @@
 from typing import Type, List
-from app.domain.models.entities.production import ProductionEntity
+from app.domain.models.entities.embrapa.production import ProductionEntity
 from pydantic import BaseModel
 
 class ProductionPortIn:

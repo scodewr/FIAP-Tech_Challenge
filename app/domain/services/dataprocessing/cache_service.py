@@ -9,7 +9,7 @@ class CacheService:
     Serviço para manipulação de cache.
     """
 
-    def save_csv_to_cache(self, url: str, df: pd.DataFrame) -> str:
+    def save_csv_to_cache(self, url: str, df: pd.DataFrame, sep: str = ";") -> str:
         """
         Salva um DataFrame como um arquivo CSV no cache.
 
@@ -20,7 +20,7 @@ class CacheService:
         file_hash = hashlib.md5(url.encode()).hexdigest()
         file_path = os.path.join(settings.CACHE_FOLDER, f"{file_hash}.csv")
         os.makedirs(settings.CACHE_FOLDER, exist_ok=True)
-        df.to_csv(file_path, index=False, encoding="utf-8", sep=";")
+        df.to_csv(file_path, index=False, encoding="utf-8", sep=sep)
         return file_path
 
     def get_csv_file_path(self, url: str) -> str:

@@ -5,12 +5,13 @@ class CachePortOut:
     Interface para abstrair os casos de uso relacionados ao cache.
     """
 
-    def save_csv_to_cache(self, url: str, df: pd.DataFrame) -> str:
+    def save_csv_to_cache(self, url: str, df: pd.DataFrame, sep: str = ";") -> str:
         """
         Salva um DataFrame como um arquivo CSV no cache.
 
         :param url: URL do CSV.
         :param df: DataFrame a ser salvo.
+        :param sep: Delimitador do CSV (padrão: ";").
         :return: Caminho completo do arquivo salvo.
         """
         raise NotImplementedError("Este método deve ser implementado por um adapter.")

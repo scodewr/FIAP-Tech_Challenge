@@ -2,7 +2,7 @@ from typing import List, Type, Optional
 from enum import Enum
 import pandas as pd
 from pydantic import BaseModel
-from deep_translator import GoogleTranslator
+from collections import defaultdict
 
 class CSVService:
     """
@@ -28,22 +28,22 @@ class CSVService:
         :return: Lista de instâncias do BaseModel.
         """
         # Lê o arquivo CSV
-        df = pd.read_csv(filepath_or_buffer=file_path, delimiter=delimiter)
-        df = self.translate_column_names(df=df)
+        df = pd.read_csv(filepath_or_buffer=file_path, delimiter=delimiter, encoding='utf-8')
+        df = self.translate_column_names(df=df, model=model)
     
         df = self.preprocess_data(df, model, category_enum, value_name_column)
         return df
     
-    def translate_column_names(self, df: pd.DataFrame, target_lang: str = "en") -> pd.DataFrame:
+    def translate_column_names(self, df: pd.DataFrame, model: Type[BaseModel]) -> pd.DataFrame:
         """
-        Traduz automaticamente os nomes das colunas do DataFrame para o idioma desejado.
+        Traduz os nomes das colunas do DataFrame para o schema do BaseModel.
 
         :param df: DataFrame cujas colunas serão traduzidas.
-        :param target_lang: Idioma de destino (padrão: inglês).
+        :param model: O BaseModel cujos nomes de campo serão usados para a tradução.
         :return: DataFrame com os nomes das colunas traduzidos.
         """
-        translator = GoogleTranslator(source="auto", target=target_lang)
-        translated_columns = {col: translator.translate(col) for col in df.columns}
+        
+        translated_columns = {col: model.schema_equivalence[str.lower(col)] for col in df.columns if str.lower(col) in model.schema_equivalence}
         return df.rename(columns=translated_columns)
 
     def preprocess_data(
@@ -55,17 +55,6 @@ class CSVService:
     ) -> List[BaseModel]:
         """
         Realiza o tratamento inicial dos dados do DataFrame e retorna uma lista de instâncias do BaseModel.
-        - Remove espaços extras das colunas e células.
-        - Substitui valores nulos por "N/A".
-        - Remove linhas onde todas as colunas numéricas (anos) estão vazias.
-        - Remove linhas onde qualquer célula contém um valor igual a algum valor da Enum fornecida.
-        - Aplica a transformação "melt" no DataFrame
-        - Usa a coluna 'control' para gerar o BaseModel, mas remove-a da exibição final.
-
-        :param df: DataFrame a ser processado.
-        :param model: O BaseModel para mapear os dados.
-        :param category_enum: Enum opcional para filtrar categorias.
-        :return: Lista de instâncias do BaseModel.
         """
         # Remove espaços extras dos nomes das colunas
         df.columns = df.columns.str.strip()
@@ -73,8 +62,21 @@ class CSVService:
         # Remove espaços extras de todas as células
         df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
-        # Substitui valores nulos por "N/A"
-        df.fillna("N/A", inplace=True)
+        # Substitui valores nulos por 0 inicialmente
+        df.fillna(0, inplace=True)
+
+        # Conta quantas colunas compartilham o mesmo prefixo antes do `.`
+        column_groups = defaultdict(list)
+
+        for col in df.columns:
+            base_name = col.split('.')[0]  # Pega o nome base da coluna
+            column_groups[base_name].append(col)
+
+        # Agora agrupe e some os grupos com mais de uma coluna
+        for base_name, cols in column_groups.items():
+            if len(cols) > 1:
+                df[base_name] = df[cols].sum(axis=1)
+                df.drop(columns=[col for col in cols if col != base_name], inplace=True)
 
         # Remove linhas onde todas as colunas numéricas (anos) estão vazias ou zero
         numeric_columns = df.select_dtypes(include=["number"]).columns
@@ -82,28 +84,60 @@ class CSVService:
             df = df[df[numeric_columns].sum(axis=1) > 0]
 
         # Remove linhas onde qualquer célula contém um valor igual a algum valor da Enum
-        if category_enum:
+        '''if category_enum:
             enum_values = set(item.value.upper() for item in category_enum)
             rows_to_remove = df.apply(lambda row: any(str(cell).upper() in enum_values for cell in row), axis=1)
             df = df[~rows_to_remove]
+        '''
+        if 'control' in df.columns:
+            df = df[df['control'].astype(str).str.contains('_')]
 
-        # Aplica a transformação "melt" no DataFrame, se solicitado
-        
+        # Trata colunas de ano
         colunas_years = [col for col in df.columns if str(col).isdigit()]
+        for col in colunas_years:
+            df[col] = df[col].replace({'nd': None, '*': None}) 
+            df[col] = df[col].astype(str).str.replace(',', '.', regex=False)
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        for col in df.columns:
+            if col not in colunas_years:
+                df[col] = df[col].astype(str).str.replace('(', '', regex=False)
+                df[col] = df[col].astype(str).str.replace(')', '', regex=False)
+
+        # Aplica transformação melt
         colunas_info = [col for col in df.columns if col not in colunas_years]
         df = df.melt(id_vars=colunas_info, value_vars=colunas_years, var_name='year', value_name=value_name_column)
 
+        # Remove linhas com NaN na coluna que vai pro campo numérico no Pydantic
+        df = df[df[value_name_column].notna()]
+        df = df[df['year'].notna()]
+        # Alternativamente, para definir como 0.0 (cuidado: só se fizer sentido!)
+        df = df[:].replace({'(':'', ')': ''})
+
         # Gera o field_map automaticamente
         model_fields = model.model_fields.keys()
+        df.columns = df.columns.str.lower()  # se quiser padronizar
         field_map = {field: field for field in model_fields if field in df.columns}
+
 
         # Converte o DataFrame em uma lista de BaseModel
         base_model_list = []
         for _, row in df.iterrows():
-            # Usa a coluna 'control' para gerar o BaseModel
-            data = {model_field: row.get(df_field) for model_field, df_field in field_map.items()}
-            base_model_list.append(model(**data))
+            data = {}
+            for model_field, df_field in field_map.items():
+                value = row.get(df_field)
 
-        # Remove a coluna 'control' do DataFrame para exibição final
+                # Tratamento de NaN para campos numéricos
+                if pd.isna(value):
+                    value = None
+
+                data[model_field] = value
+
+            try:
+                base_model_list.append(model(**data))
+            except Exception as e:
+                # Log opcional, você pode remover ou levantar uma exceção personalizada se preferir
+                print(f"Erro ao criar instância do modelo: {e}\nDados: {data}")
+
 
         return base_model_list

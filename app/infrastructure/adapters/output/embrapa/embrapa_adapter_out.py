@@ -1,4 +1,4 @@
-from app.application.ports.output.embrapa_port_out import EmbrapaPortOut
+from app.application.ports.output.embrapa.embrapa_port_out import EmbrapaPortOut
 from app.domain.services.embrapa.embrapa_service import EmbrapaService
 from typing import Type, Optional
 from pydantic import BaseModel

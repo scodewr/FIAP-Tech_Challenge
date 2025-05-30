@@ -1,44 +1,21 @@
-from fastapi import APIRouter, Query, Request, Response, Depends
+from fastapi import APIRouter, Query, Depends
 from typing import List
-from app.domain.models.entities.processing import ProcessingEntity
-
-
+from app.domain.models.entities.embrapa.processing import ProcessingEntity
+from app.application.ports.input.embrapa.processing_port_in import ProcessingPortIn
+from fastapi.security import HTTPBearer
+from app.application.ports.output.auth.jwt_auth_port import JWTAuthPort
+from app.shared.dependencies import get_jwt_adapter_out, get_processing_adapter_in
 
 router = APIRouter(
     prefix="/info/processing",
     tags=["Informações de Processamento"],
-    
+    #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
     response_model=List[ProcessingEntity],
     responses={
-        200: {
-            "description": "Dados de processamento retornados com sucesso.",
-            "content": {
-                "application/json": {
-                    "example": [
-                        {
-                            "id": 1,
-                            "control": "PR",
-                            "cultivate": "Uva",
-                            "category": "Processamento",
-                            "year": 2020,
-                            "processing": 300
-                        },
-                        {
-                            "id": 2,
-                            "control": "AR",
-                            "cultivate": "Uva",
-                            "category": "Armazenamento",
-                            "year": 2021,
-                            "processing": 400
-                        }
-                    ]
-                }
-            },
-        },
         503: {
             "description": "Erro no serviço da Embrapa.",
             "content": {
@@ -54,14 +31,15 @@ router = APIRouter(
     },
 )
 async def get_processing_data(
-    request: Request,
-    response: Response,
     page: int = Query(1, ge=1, description="Número da página"),
-    page_size: int = Query(10, ge=1, le=100, description="Tamanho da página")
+    page_size: int = Query(10, ge=1, le=100, description="Tamanho da página"),
+    port_in: ProcessingPortIn = Depends(get_processing_adapter_in),
+    auth_port: JWTAuthPort = Depends(get_jwt_adapter_out)
 ):
     """
     Endpoint para retornar informações de processamento.
     """
+    #await auth_port.validate_token(endpoint_permission="info_production")
     url = 'http://vitibrasil.cnpuv.embrapa.br/index.php?opcao=opt_03'
-    data = processing_adapter.get_production_data(url=url, page=page, page_size=page_size)
+    data = port_in.get_processing_data(url=url, page=page, page_size=page_size)
     return data

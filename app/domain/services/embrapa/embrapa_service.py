@@ -1,8 +1,7 @@
 from typing import Type, Optional
 import pandas as pd
-from app.application.ports.output.embrapa_port_out import EmbrapaPortOut
-from app.application.ports.output.cache_port_out import CachePortOut
-from app.application.ports.output.csv_port_out import CSVPortOut
+from app.application.ports.output.dataprocessing.cache_port_out import CachePortOut
+from app.application.ports.output.dataprocessing.csv_port_out import CSVPortOut
 from pydantic import BaseModel
 import requests
 from starlette.exceptions import HTTPException
@@ -38,7 +37,7 @@ class EmbrapaService:
             )
 
         # Faz o download do CSV
-        csv_url = self.download_csv(url=url, delimiter=delimiter)
+        csv_url = self.download_csv(url=url)
         
         result = self.csv_port.process_csv(
             file_path=csv_url,
@@ -49,12 +48,12 @@ class EmbrapaService:
         )
 
         # Salva o arquivo no cache
-        df = pd.DataFrame([item.dict() for item in result])
-        self.cache_port.save_csv_to_cache(url, df=df)
+        df = pd.DataFrame([item.model_dump() for item in result])
+        self.cache_port.save_csv_to_cache(url=url, df=df, sep=delimiter)
 
         return df
     
-    def download_csv(self, url: str, delimiter: str = ";") -> pd.DataFrame:
+    def download_csv(self, url: str) -> pd.DataFrame:
         response = requests.get(url, timeout=10)  # Timeout de 10 segundos
         if response.status_code != 200:
             raise HTTPException(status_code=503, detail="Falha ao acessar a página da Embrapa.")

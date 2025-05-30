@@ -1,4 +1,4 @@
-from app.application.ports.output.cache_port_out import CachePortOut
+from app.application.ports.output.dataprocessing.cache_port_out import CachePortOut
 from app.domain.services.dataprocessing.cache_service import CacheService
 import pandas as pd
 
@@ -10,11 +10,11 @@ class CacheAdapterOut(CachePortOut):
     def __init__(self, service: CacheService):
         self.service = service
 
-    def save_csv_to_cache(self, url: str, df: pd.DataFrame) -> str:
+    def save_csv_to_cache(self, url: str, df: pd.DataFrame, sep: str = ";") -> str:
         """
         Salva um DataFrame como um arquivo CSV no cache.
         """
-        return self.service.save_csv_to_cache(url, df=df)
+        return self.service.save_csv_to_cache(url, df=df, sep=sep)
 
     def get_csv_file_path(self, url: str) -> str:
         """

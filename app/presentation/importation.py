@@ -1,43 +1,20 @@
-from fastapi import APIRouter, Query, Request, Response, Depends
+from fastapi import APIRouter, Query, Depends
 from typing import List
-from app.domain.models.entities.importation import ImportationEntity
-
+from app.domain.models.entities.embrapa.importation import ImportationEntity
+from app.application.ports.output.auth.jwt_auth_port import JWTAuthPort
+from app.shared.dependencies import get_jwt_adapter_out, get_importation_adapter_in
+from app.application.ports.input.embrapa.importation_port_in import ImportationPortIn
 
 router = APIRouter(
     prefix="/info/importation",
     tags=["Informações de Importação"],
-    
+    #dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
     "/",
     response_model=List[ImportationEntity],
     responses={
-        200: {
-            "description": "Dados de importação retornados com sucesso.",
-            "content": {
-                "application/json": {
-                    "example": [
-                        {
-                            "id": 1,
-                            "control": "IM",
-                            "product": "Vinho",
-                            "category": "Importação",
-                            "year": 2020,
-                            "importation": 150
-                        },
-                        {
-                            "id": 2,
-                            "control": "IM",
-                            "product": "Suco",
-                            "category": "Importação",
-                            "year": 2021,
-                            "importation": 250
-                        }
-                    ]
-                }
-            },
-        },
         503: {
             "description": "Erro no serviço da Embrapa.",
             "content": {
@@ -53,13 +30,15 @@ router = APIRouter(
     },
 )
 async def get_importation_data(
-    request: Request,
-    response: Response,
     page: int = Query(1, ge=1, description="Número da página"),
-    page_size: int = Query(10, ge=1, le=100, description="Tamanho da página")
+    page_size: int = Query(10, ge=1, le=100, description="Tamanho da página"),
+    port_in: ImportationPortIn = Depends(get_importation_adapter_in),
+    auth_port: JWTAuthPort = Depends(get_jwt_adapter_out)
 ):
     """
     Endpoint para retornar informações de importação.
     """
+    #await auth_port.validate_token(endpoint_permission="info_production")
     url = 'http://vitibrasil.cnpuv.embrapa.br/index.php?opcao=opt_05'
-    return ""
+    data = port_in.get_importation_data(url=url, page=page, page_size=page_size)
+    return data

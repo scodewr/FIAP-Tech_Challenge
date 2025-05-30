@@ -1,6 +1,6 @@
 from typing import List, Type, Optional
 from enum import Enum
-from app.application.ports.output.csv_port_out import CSVPortOut
+from app.application.ports.output.dataprocessing.csv_port_out import CSVPortOut
 from app.domain.services.dataprocessing.csv_service import CSVService
 from pydantic import BaseModel
 
