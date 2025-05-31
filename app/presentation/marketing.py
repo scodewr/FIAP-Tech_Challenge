@@ -3,8 +3,8 @@ from typing import List
 from app.domain.models.entities.embrapa.marketing import MarketingEntity
 from fastapi.security import HTTPBearer
 from app.application.ports.input.embrapa.marketing_port_in import MarketingPortIn
-from app.application.ports.output.auth.jwt_auth_port import JWTAuthPort
-from app.shared.dependencies import get_jwt_adapter_out, get_marketing_adapter_in
+
+from app.shared.dependencies import get_marketing_adapter_in
 
 router = APIRouter(
     prefix="/info/marketing",
@@ -34,8 +34,7 @@ router = APIRouter(
 async def get_marketing_data(
     page: int = Query(1, ge=1, description="Número da página"),
     page_size: int = Query(10, ge=1, le=100, description="Tamanho da página"),
-    port_in: MarketingPortIn = Depends(get_marketing_adapter_in),
-    auth_port: JWTAuthPort = Depends(get_jwt_adapter_out)
+    port_in: MarketingPortIn = Depends(get_marketing_adapter_in)
 ):
     """
     Endpoint para retornar informações de marketing.

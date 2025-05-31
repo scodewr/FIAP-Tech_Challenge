@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Depends, Request
 from app.application.ports.input.embrapa.production_port_in import ProductionPortIn
-from app.shared.dependencies import get_production_adapter_in, get_jwt_adapter_out
+from app.shared.dependencies import get_production_adapter_in
 from app.domain.models.entities.embrapa.production import ProductionEntity
 from fastapi.security import HTTPBearer
-from app.application.ports.output.auth.jwt_auth_port import JWTAuthPort
+from app.shared.util.util_token import validate_token_and_get_payload
+
 from typing import List
 
 router = APIRouter(
     prefix="/info/production",
     tags=["Embrapa"],
-    #dependencies=[Depends(HTTPBearer())],
+    dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
@@ -31,11 +32,13 @@ router = APIRouter(
         },
     },
 )
+#@with_token_and_validate(endpoint_permission="info_production")
 async def info_production(
+    request: Request,
     page: int = Query(1, ge=1, description="Número da página"),
     page_size: int = Query(10, ge=1, le=100, description="Tamanho da página"),
     port_in: ProductionPortIn = Depends(get_production_adapter_in),
-    auth_port: JWTAuthPort = Depends(get_jwt_adapter_out)
+    user_payload: dict = validate_token_and_get_payload(endpoint_permission="info_production")
 ):
     #await auth_port.validate_token(endpoint_permission="info_production")
     url = 'http://vitibrasil.cnpuv.embrapa.br/index.php?opcao=opt_02'

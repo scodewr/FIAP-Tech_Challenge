@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Query, Depends
 from typing import List
 from app.domain.models.entities.embrapa.exportation import ExportationEntity
-from app.application.ports.output.auth.jwt_auth_port import JWTAuthPort
-from app.shared.dependencies import get_jwt_adapter_out, get_exportation_adapter_in
+from app.shared.dependencies import get_exportation_adapter_in
 from app.application.ports.input.embrapa.exportation_port_in import ExportationPortIn
 
 router = APIRouter(
@@ -58,8 +57,7 @@ router = APIRouter(
 async def get_exportation_data(
     page: int = Query(1, ge=1, description="Número da página"),
     page_size: int = Query(10, ge=1, le=100, description="Tamanho da página"),
-    port_in: ExportationPortIn = Depends(get_exportation_adapter_in),
-    auth_port: JWTAuthPort = Depends(get_jwt_adapter_out)
+    port_in: ExportationPortIn = Depends(get_exportation_adapter_in)
 ):
     """
     Endpoint para retornar informações de exportação.

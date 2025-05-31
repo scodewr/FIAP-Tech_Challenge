@@ -1,21 +1,21 @@
 from fastapi import HTTPException, status
 from pydantic import ValidationError
 
-class EmbrapaServiceUnavailableException(HTTPException):
+class HttpEmbrapaServiceUnavailableException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Serviço Embrapa indisponível. Tente novamente mais tarde."
         )
 
-class EmbrapaDownloadLinkNotFoundException(HTTPException):
+class HttpEmbrapaDownloadLinkNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Download link não encontrado na página da Embrapa."
         )
 
-class InvalidTokenException(HTTPException):
+class HttpInvalidTokenException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -23,7 +23,7 @@ class InvalidTokenException(HTTPException):
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-class ExpiredTokenException(HTTPException):
+class HttpExpiredTokenException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -31,23 +31,37 @@ class ExpiredTokenException(HTTPException):
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-class PermissionDeniedException(HTTPException):
+class HttpPermissionDeniedException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Permissão negada para acessar este endpoint."
         )
 
-class UserAlreadyExistsError(HTTPException):
+class HttpUserAlreadyExistsError(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
             detail="Usuário já cadastrado."
         )
 
-class PydanticRequestValidationError(HTTPException):
+class HttpPydanticRequestValidationError(HTTPException):
     def __init__(self, error: ValidationError):
         super().__init__(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=error.errors() 
-)
+        )
+
+class HttpUserNotFoundError(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado."
+        )
+
+class HttpInvalidPasswordError(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Senha incorreta."
+        )

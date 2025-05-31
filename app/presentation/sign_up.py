@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends
 from app.application.ports.input.iam.sign_up_port_in import SignUpPortIn
 from app.shared.dependencies import get_sign_up_adapter_in
 from app.shared.dto.iam.user_request_dto import UserRequestDTO
-from app.shared.exceptions import UserAlreadyExistsError, PydanticRequestValidationError
-from pydantic import ValidationError
+from app.shared.exceptions import HttpUserAlreadyExistsError, HttpPydanticRequestValidationError
+from app.domain.exceptions.iam.db.db_exceptions import UserAlreadyExistsError
+from app.domain.exceptions.iam.model.model_exceptions import PydanticRequestValidationError
 
 router = APIRouter(
     prefix="/user/sign-up",
@@ -32,8 +33,8 @@ async def info_production(
 ):
     try:
         port_in.new_user(user)
-    except Exception as e:
-        raise UserAlreadyExistsError() from e
-    except ValidationError as e:
-        raise PydanticRequestValidationError() from e
+    except UserAlreadyExistsError as e:
+        raise HttpUserAlreadyExistsError() from e
+    except PydanticRequestValidationError as e:
+        raise HttpPydanticRequestValidationError() from e
     return {"message": "Usuário cadastrado com sucesso."}

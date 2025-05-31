@@ -1,6 +1,6 @@
 from app.domain.models.entities.iam.user import UserEntity
 from app.domain.services.iam.db.local_db_service import LocalDbService
-from app.domain.exceptions.iam.db.general_exceptions import UserAlreadyExistsError
+from app.domain.exceptions.iam.db.db_exceptions import UserAlreadyExistsError
 
 class SignUpAdapterOut:
     

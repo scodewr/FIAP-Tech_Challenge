@@ -1,7 +1,8 @@
 from app.domain.models.entities.iam.user import UserEntity
 from app.application.ports.output.iam.sign_up_port_out import SignUpPortOut
 from app.shared.dto.iam.user_request_dto import UserRequestDTO
-from app.domain.exceptions.iam.db.general_exceptions import UserAlreadyExistsError
+from app.domain.exceptions.iam.db.db_exceptions import UserAlreadyExistsError
+from app.domain.exceptions.iam.model.model_exceptions import PydanticRequestValidationError
 
 class SignUpService:
 
@@ -20,7 +21,7 @@ class SignUpService:
         :raises ValidationError: If the data is invalid.
         """
         if user_dto is None:
-            raise ValueError("User data cannot be empty.")
+            raise PydanticRequestValidationError("User data cannot be empty.")
         user = user_dto.model_dump_json()
         user_data = UserEntity.model_validate_json(user)
 

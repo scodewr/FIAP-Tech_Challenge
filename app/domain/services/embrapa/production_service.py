@@ -1,8 +1,7 @@
 from typing import List
 from app.application.ports.output.embrapa.embrapa_port_out import EmbrapaPortOut
 from pydantic import BaseModel
-from app.domain.models.entities.embrapa.production import ProductionEntity
-from app.domain.models.entities.embrapa.production import ProductionCategoryEnum
+from app.domain.models.entities.embrapa.production import ProductionEntity, ProductionCategoryEnum
 
 class ProductionService:
     """

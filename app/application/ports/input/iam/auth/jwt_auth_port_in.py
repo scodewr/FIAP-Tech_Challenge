@@ -1,11 +1,12 @@
 from typing import Dict
+from app.domain.models.entities.iam.user import UserEntity
 
-class JWTAuthPort:
+class JWTAuthPortIn:
     """
     Interface para abstrair as operações relacionadas ao JWT.
     """
 
-    def create_access_token(self, data: Dict) -> str:
+    def create_access_token(self, data: UserEntity) -> str:
         """
         Gera um token JWT com os dados fornecidos.
 
@@ -14,7 +15,7 @@ class JWTAuthPort:
         """
         raise NotImplementedError("Este método deve ser implementado por um adapter.")
     
-    def validate_token(self, endpoint_permission: str = None):
+    def validate_token(self, token: str = None, endpoint_permission: str = None):
         """
         Decorator para validação de token JWT e permissões.
 

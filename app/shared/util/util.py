@@ -1,4 +1,3 @@
-
 class Util:
     """
     Classe Util com métodos estáticos para manipulação de strings.

@@ -1,0 +1,3 @@
+
+class PydanticRequestValidationError(Exception):
+    pass
