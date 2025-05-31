@@ -32,7 +32,6 @@ router = APIRouter(
         },
     },
 )
-#@with_token_and_validate(endpoint_permission="info_production")
 async def info_production(
     request: Request,
     page: int = Query(1, ge=1, description="Número da página"),
@@ -40,7 +39,6 @@ async def info_production(
     port_in: ProductionPortIn = Depends(get_production_adapter_in),
     user_payload: dict = validate_token_and_get_payload(endpoint_permission="info_production")
 ):
-    #await auth_port.validate_token(endpoint_permission="info_production")
     url = 'http://vitibrasil.cnpuv.embrapa.br/index.php?opcao=opt_02'
     data = port_in.get_production_data(url=url, page=page, page_size=page_size)
     return data

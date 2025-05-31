@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Depends, Request
 from typing import List
 from app.domain.models.entities.embrapa.exportation import ExportationEntity
 from app.shared.dependencies import get_exportation_adapter_in
 from app.application.ports.input.embrapa.exportation_port_in import ExportationPortIn
+from app.shared.util.util_token import validate_token_and_get_payload
+from fastapi.security import HTTPBearer
 
 router = APIRouter(
     prefix="/info/exportation",
     tags=["Embrapa"],
-    #dependencies=[Depends(HTTPBearer())],
+    dependencies=[Depends(HTTPBearer())],
 )
 
 @router.get(
@@ -55,9 +57,11 @@ router = APIRouter(
     },
 )
 async def get_exportation_data(
+    request: Request,
     page: int = Query(1, ge=1, description="Número da página"),
     page_size: int = Query(10, ge=1, le=100, description="Tamanho da página"),
-    port_in: ExportationPortIn = Depends(get_exportation_adapter_in)
+    port_in: ExportationPortIn = Depends(get_exportation_adapter_in),
+    user_payload: dict = validate_token_and_get_payload(endpoint_permission="info_exportation")
 ):
     """
     Endpoint para retornar informações de exportação.

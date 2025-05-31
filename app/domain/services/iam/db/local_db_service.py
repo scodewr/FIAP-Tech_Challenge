@@ -53,8 +53,10 @@ class LocalDbService:
             if user.password != user_entity.password:
                 raise InvalidPasswordError(f"Invalid password for user '{user.login}'.")
             return user_entity
-        except Exception as e:
+        except UserNotFoundError as e:
             raise UserNotFoundError(f"User '{user.login}' not found.") from e
+        except InvalidPasswordError as e:
+            raise InvalidPasswordError(f"Invalid password for user '{user.login}'.") from e
         
     def get_user_by_login(self, login: str) -> UserEntity:
         """
