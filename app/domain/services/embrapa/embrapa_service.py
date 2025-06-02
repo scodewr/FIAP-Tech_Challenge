@@ -7,11 +7,18 @@ import requests
 from starlette.exceptions import HTTPException
 from bs4 import BeautifulSoup
 from enum import Enum
+from app.shared.config import settings
+import pybreaker
 
 class EmbrapaService:
     """
     Serviço para manipulação de dados obtidos da Embrapa.
     """
+
+    embrapa_breaker = pybreaker.CircuitBreaker(
+        fail_max=settings.BREAKER_FAIL_MAX,
+        reset_timeout=settings.BREAKER_RESET_TIMEOUT
+    )
 
     def __init__(self, cache_port: CachePortOut, csv_port: CSVPortOut):
         self.cache_port = cache_port
@@ -53,22 +60,42 @@ class EmbrapaService:
 
         return df
     
-    def download_csv(self, url: str) -> pd.DataFrame:
-        response = requests.get(url, timeout=10)  # Timeout de 10 segundos
-        if response.status_code != 200:
-            raise HTTPException(status_code=503, detail="Falha ao acessar a página da Embrapa.")
+    def download_csv(self, url: str) -> str:
+        try:
+            # Chamada protegida com circuit breaker
+            response = self.embrapa_breaker.call(requests.get, url, timeout=10)
+            
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=503,
+                    detail="Falha ao acessar a página da Embrapa."
+                )
 
-        html_content = response.text
-        soup = BeautifulSoup(html_content, 'html.parser')
-        link_tag = soup.find("a", href=True, text=None, class_="footer_content")
-        if not link_tag or not link_tag.find("span", string=lambda s: s and "DOWNLOAD" in s.upper()):
-            raise HTTPException(status_code=404, detail="Download link não encontrado.")
+            html_content = response.text
+            soup = BeautifulSoup(html_content, 'html.parser')
+            link_tag = soup.find("a", href=True, text=None, class_="footer_content")
 
-        download_url = link_tag["href"]
-        if download_url.startswith("/"):
-            download_url = "http://vitibrasil.cnpuv.embrapa.br" + download_url
-        elif not download_url.startswith("http"):
-            download_url = "http://vitibrasil.cnpuv.embrapa.br/" + download_url.lstrip("/")
+            if not link_tag or not link_tag.find("span", string=lambda s: s and "DOWNLOAD" in s.upper()):
+                raise HTTPException(
+                    status_code=404,
+                    detail="Download link não encontrado."
+                )
 
-        
-        return download_url
+            download_url = link_tag["href"]
+            if download_url.startswith("/"):
+                download_url = "http://vitibrasil.cnpuv.embrapa.br" + download_url
+            elif not download_url.startswith("http"):
+                download_url = "http://vitibrasil.cnpuv.embrapa.br/" + download_url.lstrip("/")
+
+            return download_url
+
+        except pybreaker.CircuitBreakerError:
+            raise HTTPException(
+                status_code=503,
+                detail="Serviço da Embrapa temporariamente indisponível (circuito aberto)."
+            )
+        except requests.RequestException as e:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Erro ao conectar ao serviço da Embrapa: {str(e)}"
+            )

@@ -9,16 +9,9 @@ class LocalDbService:
 
     db = {
         "users": {
-            "admin": UserEntity(
-                id=1,
-                login="admin",
-                first_name="Admin",
-                last_name="Service User",
-                password="admin123",
-                permissions=["info_production", "info_processing", "info_marketing", "info_importation", "info_exportation"]
-            )
+            
         }
-}
+    }
 
 
 
