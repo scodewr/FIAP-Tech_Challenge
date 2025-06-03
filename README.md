@@ -91,8 +91,7 @@ Faça uma requisição `POST` para `/user/log-in` com as credenciais:
 🔁 A resposta incluirá um token JWT no seguinte formato:
 
     {
-      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-      "token_type": "bearer"
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     }
 
 ---
